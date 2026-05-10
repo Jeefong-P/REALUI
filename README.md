@@ -17,7 +17,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173
+Open http://localhost:xxxx (depends on your bash)
 
 ## Connecting to Node.js / LoRa Data
 
