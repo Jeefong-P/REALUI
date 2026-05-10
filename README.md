@@ -19,7 +19,7 @@ npm run dev
 
 Open http://localhost:xxxx (depends on your bash)
 
-## Connecting to Node.js / LoRa Data
+## Connecting to Node.js
 
 All telemetry values flow through the `telemetry` prop in `App.jsx`.
 There is a clearly marked `TODO` block in `App.jsx` 
@@ -28,15 +28,6 @@ There is a clearly marked `TODO` block in `App.jsx`
 1. Install websocket-client:
 2. I will Replace `STATIC_TELEMETRY` in `App.jsx` with a `useTelemetry()` hook later.
 
-## model
-
-1. Place your `.glb` file in the `public/model/` folder
-2. Edit `src/components/ModelZone.jsx`, line 6:
-   ```js
-   const MODEL_SRC = '/model/your-model-name.glb'
-   ```
-
-The model auto-centers, auto-scales, and slowly rotates. Drag to orbit, scroll to zoom.
 
 ## Project Structure (not done yet)
 
