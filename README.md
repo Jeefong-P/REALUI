@@ -14,7 +14,7 @@ Live feed React frontend.
 **If your installed node_modules does not work, show this README.md to AI.
 
 ```bash
-cd vehicle-dashboard
+cd dashboard
 npm install
 npm run dev
 ```
