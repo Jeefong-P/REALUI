@@ -1,5 +1,5 @@
 **Feel free to do anything with this file, make sure you don't mess up the original by creating a branch.
-
+**This git repository will only demonstrate the UI Front-end, all backend logics are not here, what you see is only the simulation
 
 Live feed React frontend.
 
@@ -24,10 +24,9 @@ Open http://localhost:5173
 All telemetry values flow through the `telemetry` prop in `App.jsx`.
 There is a clearly marked `TODO` block in `App.jsx` 
 
-**Steps:**
-1. Install socket.io-client:  `npm install socket.io-client`
-2. Replace `STATIC_TELEMETRY` in `App.jsx` with a `useTelemetry()` hook that reads from your Node.js server
-3. Your Node.js server emits: `socket.emit('telemetry', { ppo2, cabinTemp, ... })`
+
+1. Install websocket-client:
+2. I will Replace `STATIC_TELEMETRY` in `App.jsx` with a `useTelemetry()` hook later.
 
 ## model
 
