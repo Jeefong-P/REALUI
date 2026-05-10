@@ -1,13 +1,15 @@
-# Vehicle Overview Dashboard
+**Feel free to do anything with this file, make sure you don't mess up the original by creating a branch.
 
-Chula Engineering — Vehicle Overview React frontend.
+
+Live feed React frontend.
 
 ## Stack
 - **React 18** + **Vite**
 - **Three.js** (r134) for 3D model viewer
-- Plain CSS (no Tailwind, no styled-components — easy to edit)
+- Plain CSS, might add tailwind later.
 
 ## Getting Started
+**If your installed node_modules does not work, show this README.md to AI.
 
 ```bash
 cd vehicle-dashboard
@@ -20,14 +22,14 @@ Open http://localhost:5173
 ## Connecting to Node.js / LoRa Data
 
 All telemetry values flow through the `telemetry` prop in `App.jsx`.
-There is a clearly marked `TODO` block in `App.jsx` showing exactly where to plug in your WebSocket/socket.io connection.
+There is a clearly marked `TODO` block in `App.jsx` 
 
 **Steps:**
 1. Install socket.io-client:  `npm install socket.io-client`
 2. Replace `STATIC_TELEMETRY` in `App.jsx` with a `useTelemetry()` hook that reads from your Node.js server
 3. Your Node.js server emits: `socket.emit('telemetry', { ppo2, cabinTemp, ... })`
 
-## Loading Your 3D Model
+## model
 
 1. Place your `.glb` file in the `public/model/` folder
 2. Edit `src/components/ModelZone.jsx`, line 6:
@@ -37,7 +39,7 @@ There is a clearly marked `TODO` block in `App.jsx` showing exactly where to plu
 
 The model auto-centers, auto-scales, and slowly rotates. Drag to orbit, scroll to zoom.
 
-## Project Structure
+## Project Structure (not done yet)
 
 ```
 src/
@@ -45,7 +47,9 @@ src/
   index.css            ← All styles (CSS variables at top for easy theming)
   main.jsx             ← React entry point
   assets/
-    logo.jpg           ← Chula Engineering logo
+    logo.jpg           ← All logo(s)
+    **anything that suppose to be in public will be here
+
   components/
     TopBar.jsx         ← Header with logo + clock
     LeftList.jsx       ← Checklist panel
@@ -58,9 +62,12 @@ src/
     IconBar.jsx        ← Function buttons + icon row
     StatusBar.jsx      ← Bottom status strip
     Clock.jsx          ← Live clock component
+   
 ```
 
 ## Theming
+
+Note that the .CSS does not contains all of the CSS existed in the project.
 
 Edit CSS variables at the top of `src/index.css`:
 ```css
