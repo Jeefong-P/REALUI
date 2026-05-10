@@ -1,0 +1,201 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700&display=swap');
+
+.topbar {
+  width: 100%;
+  font-family: 'Rajdhani', sans-serif;
+  user-select: none;
+}
+
+/* ── Layer 1 ── */
+.topbar-layer1 {
+  background: #0c0c0c;
+  border-bottom: 1px solid #1e1e1e;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 20px;
+  height: 28px;
+}
+
+.topbar-org-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-org-tag {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #fff;
+}
+
+.topbar-org-sep {
+  color: #c0392b;
+  font-size: 14px;
+  font-weight: 300;
+}
+
+.topbar-org-sub {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+}
+
+.topbar-org-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.topbar-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 5px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.topbar-org-right {
+  display: flex;
+  align-items: center;
+}
+
+.topbar-date {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Layer 2 ── */
+.topbar-layer2 {
+  display: flex;
+  align-items: stretch;
+  height: 52px;
+  position: relative;
+  background: #111;
+}
+
+/* Red left side with angled right edge */
+.topbar-left {
+  flex: 1;
+  background: #b92b1a;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px 0 20px;
+  clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 100%, 0 100%);
+  position: relative;
+}
+
+/* Dark right side with angled left edge */
+.topbar-right {
+  flex: 1;
+  background: #161616;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 0 20px 0 24px;
+  clip-path: polygon(24px 0, 100% 0, 100% 100%, 0 100%);
+}
+
+/* Center floating block */
+.topbar-center {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  height: 100%;
+  z-index: 10;
+  background: #0c0c0c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+  clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 100%, 0 100%);
+  border-left: 1px solid #c0392b;
+  border-right: 1px solid #c0392b;
+}
+
+.topbar-center-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.topbar-phase-lbl {
+  font-size: 8px;
+  letter-spacing: 2.5px;
+  color: rgba(255, 255, 255, 0.3);
+  text-transform: uppercase;
+}
+
+.topbar-phase-val {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #e8c04a;
+  text-transform: uppercase;
+}
+
+/* Items */
+.topbar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.topbar-item.end {
+  align-items: flex-end;
+}
+
+.topbar-lbl {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+}
+
+.topbar-val {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.topbar-val.accent { color: #fff; font-family: 'Orbitron', sans-serif; font-size: 13px; }
+.topbar-val.dim { color: rgba(255, 255, 255, 0.6); font-size: 13px; }
+.topbar-val.green { color: #2ecc71; }
+.topbar-val.red { color: #e74c3c; }
+.topbar-val.mono { font-family: 'Orbitron', sans-serif; font-size: 13px; }
+
+.topbar-vdivider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+}
+
+.topbar-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2ecc71;
+  box-shadow: 0 0 6px #2ecc71, 0 0 12px rgba(46, 204, 113, 0.4);
+  animation: pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 6px #2ecc71, 0 0 12px rgba(46, 204, 113, 0.4); }
+  50% { box-shadow: 0 0 10px #2ecc71, 0 0 20px rgba(46, 204, 113, 0.6); }
+}
