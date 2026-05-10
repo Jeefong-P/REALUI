@@ -12,15 +12,6 @@ export default function PreFlight({ telemetry = {} }) {
     return () => clearTimeout(t);
   }, []);
 
-  const {
-    ppo2 = 2.68,
-    cabinTemp = 2.4,
-    cabinPressure = 14.01,
-    co2 = 0.16,
-    loopA = 26.53,
-    loopB = 20.01,
-  } = telemetry;
-
   return (
     <div id="body" className={entering ? "entering" : ""}>
       <LeftList />
@@ -29,25 +20,25 @@ export default function PreFlight({ telemetry = {} }) {
         <ModelZone />
         <div className="bubble-overlay">
           <div className="bubble bubble-tl">
-            <div className="bubble-title">ATMOSPHERIC</div>
-            <BRow label="PPO2" value={ppo2} unit="psia" />
-            <BRow label="CO2" value={co2} unit="mmHg" />
+            <div className="bubble-title">PHD</div>
+            <BRow label="PHD" value="PHD" />
+            <BRow label="PHD" value="PHD" />
           </div>
           <div className="bubble bubble-tr">
-            <div className="bubble-title">CABIN</div>
-            <BRow label="Temp" value={cabinTemp} unit="°C" />
-            <BRow label="Pressure" value={cabinPressure} unit="psia" />
+            <div className="bubble-title">PHD</div>
+            <BRow label="PHD" value="PHD" />
+            <BRow label="PHD" value="PHD" />
           </div>
           <div className="bubble bubble-l">
-            <div className="bubble-title">THERMAL</div>
-            <BRow label="Loop A" value={loopA} unit="°C" />
-            <BRow label="Loop B" value={loopB} unit="°C" />
+            <div className="bubble-title">PHD</div>
+            <BRow label="PHD" value="PHD" />
+            <BRow label="PHD" value="PHD" />
           </div>
           <div className="bubble bubble-r">
-            <div className="bubble-title">RECOVERY</div>
-            <BRow label="Drogue" value="ARMED" />
-            <BRow label="Main" value="ARMED" />
-            <BRow label="Alt Trigger" value="457 m" />
+            <div className="bubble-title">PHD</div>
+            <BRow label="PHD" value="PHD" />
+            <BRow label="PHD" value="PHD" />
+            <BRow label="PHD" value="PHD" />
           </div>
         </div>
       </div>
