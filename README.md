@@ -24,7 +24,7 @@ Open http://localhost:xxxx (depends on your bash)
 
 ## pages
 
-Click L to swap pages, this logic will be changed later and make it automatic.
+Click L to change from 1 -- > 2 and use Y to change from 2 --> 3 , this logic will be changed later and make it automatic.
 
 ## Connecting to Node.js
 
@@ -75,3 +75,7 @@ Edit CSS variables at the top of `src/index.css`:
   ...
 }
 ```
+
+## User interface
+
+UI will contain 3 pages, the logic for changing page is written above.
