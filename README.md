@@ -1,7 +1,8 @@
 **Feel free to do anything with this file, make sure you don't mess up the original by creating a branch. 
 
-
 **This git repository will only demonstrate the UI Front-end, all backend logics are not here, what you see is only the simulation
+
+**Backend's folder will not be uploaded
 
 Live feed React frontend.
 
@@ -23,7 +24,7 @@ Open http://localhost:xxxx (depends on your bash)
 
 ## pages
 
-Click L to swap pages, this logic will be changed later.
+Click L to swap pages, this logic will be changed later and make it automatic.
 
 ## Connecting to Node.js
 
