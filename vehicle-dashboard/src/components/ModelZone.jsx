@@ -38,7 +38,7 @@ export default function ModelZone() {
         <ambientLight />
         <Environment preset="sunset" background={false} />
         <SpinningModel />
-        <OrbitControls enableZoom={true} />
+        <OrbitControls enableZoom={false} />
       </Canvas>
     </div>
   );

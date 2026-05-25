@@ -1,41 +1,74 @@
 import { useEffect, useState } from "react";
 import ArcGauge from "../components/at_and_speedom";
+import CoordAxes from "../components/CoordAxes";
 import MissionTimeline from "../components/MissionTimeline";
 
 export default function OnFlight({ telemetry = {} }) {
   const [entering, setEntering] = useState(true);
+  const [mockAttitude, setMockAttitude] = useState({ rx: 0, ry: 0, rz: 0 });
 
   useEffect(() => {
     const t = setTimeout(() => setEntering(false), 1500);
     return () => clearTimeout(t);
   }, []);
 
+  useEffect(() => {
+    const startedAt = performance.now();
+
+    const tick = () => {
+      const t = (performance.now() - startedAt) / 1000;
+      setMockAttitude({
+        rx: Math.sin(t * 0.9) * 0.65,
+        ry: Math.cos(t * 0.7) * 0.45,
+        rz: Math.sin(t * 0.5) * 0.35,
+      });
+    };
+
+    tick();
+    const id = setInterval(tick, 50);
+    return () => clearInterval(id);
+  }, []);
+
   const {
     metT = "00:00:00",
-    stage = "—",
-    burnPhase = "—",
-    altitude = 0,
-    velocity = 0,
-    acceleration = 0,
-    systemStatus = "x",
-    stages = [],
+    stage = "1",
+    burnPhase = "Ascent",
+    altitude = "100",
+    velocity = "100",
+    acceleration = "100",
+    posX,
+    posY,
+    posZ,
+    orientation,
+    attitude,
+    roll,
+    pitch,
+    yaw,
+    rx,
+    ry,
+    rz,
+    systemStatus = "NOMINAL",
   } = telemetry;
 
-  const altDisplay = Number.isFinite(altitude) ? altitude.toFixed(1) : "—";
+  const attitudeSource = orientation || attitude || {};
+  const pickAttitude = (...values) => values.find((value) => Number.isFinite(Number(value)));
+  const attitudeRx = pickAttitude(attitudeSource.rx, attitudeSource.roll, rx, roll, posX) ?? mockAttitude.rx;
+  const attitudeRy = pickAttitude(attitudeSource.ry, attitudeSource.pitch, ry, pitch, posY) ?? mockAttitude.ry;
+  const attitudeRz = pickAttitude(attitudeSource.rz, attitudeSource.yaw, rz, yaw, posZ) ?? mockAttitude.rz;
 
   return (
     <div id="body" className={`onflight-body ${entering ? "entering" : ""}`}>
       {/* LEFT — mission timeline */}
       <div className="of-side of-side-left">
-        <Stat label="T+ NET" value={metT} mono />
+        <Stat label="T+ MET" value={metT} mono />
         <Divider />
         <Stat label="Stage" value={stage} accent />
         <Divider />
-        <Stat label="Phase" value={burnPhase} />
+        <Stat label="Burn Phase" value={burnPhase} />
         <Divider />
-        <Stat label="thinking" value={systemStatus} className="green" />
+        <Stat label="Status" value={systemStatus} className="green" />
         <Divider />
-        <MissionTimeline stages={stages} />
+        <MissionTimeline />
       </div>
 
       {/* CENTER — live video slot (real video lives in App.jsx) */}
@@ -45,26 +78,16 @@ export default function OnFlight({ telemetry = {} }) {
 
       {/* RIGHT — flight metrics */}
       <div className="of-side of-side-right">
-        <Stat label="Altitude" value={altDisplay} unit="m" mono />
+        <Stat label="Altitude" value={altitude} unit="km" mono />
         <Divider />
         <div className="of-gauge">
-          <ArcGauge
-            value={velocity}
-            max={1000}
-            title="VELOCITY"
-            unit="m/s"
-            size={150}
-          />
+          <ArcGauge value={velocity} max={1000} title="VELOCITY" unit="m/s" size={150} />
         </div>
         <div className="of-gauge">
-          <ArcGauge
-            value={acceleration}
-            max={10}
-            title="ACCEL"
-            unit="G"
-            size={150}
-          />
+          <ArcGauge value={acceleration} max={10} title="ACCEL" unit="G" size={150} />
         </div>
+        <Divider />
+        <CoordAxes rx={attitudeRx} ry={attitudeRy} rz={attitudeRz} />
       </div>
     </div>
   );
@@ -74,9 +97,7 @@ function Stat({ label, value, unit, mono, accent, className = "" }) {
   return (
     <div className={`of-stat ${className}`}>
       <span className="of-lbl">{label}</span>
-      <span
-        className={`of-val ${mono ? "mono" : ""} ${accent ? "accent" : ""}`}
-      >
+      <span className={`of-val ${mono ? "mono" : ""} ${accent ? "accent" : ""}`}>
         {value}
         {unit && <span className="of-unit"> {unit}</span>}
       </span>
