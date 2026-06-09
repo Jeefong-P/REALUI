@@ -1,7 +1,18 @@
 import { useEffect, useState } from "react";
-import { AltitudeGraph, VelocityGraph, AccelerationGraph, TempPressureGraph } from "../components/FlightGraphs";
+import {
+  AltitudeGraph,
+  VelocityGraph,
+  AccelerationGraph,
+  TempPressureGraph,
+} from "../components/FlightGraphs";
 
-export default function PostFlight({ telemetry = {}, flightStats = null, finalMetT = null, eventTimes = {}, flightSamples = [] }) {
+export default function PostFlight({
+  telemetry = {},
+  flightStats = null,
+  finalMetT = null,
+  eventTimes = {},
+  flightSamples = [],
+}) {
   const [entering, setEntering] = useState(true);
 
   useEffect(() => {
@@ -24,7 +35,12 @@ export default function PostFlight({ telemetry = {}, flightStats = null, finalMe
   return (
     <div id="body" className={`postflight-body ${entering ? "entering" : ""}`}>
       <div className="pf-grid">
-        <MissionClock telemetry={merged} stages={merged.stages} finalMetT={finalMetT} eventTimes={eventTimes} />
+        <MissionClock
+          telemetry={merged}
+          stages={merged.stages}
+          finalMetT={finalMetT}
+          eventTimes={eventTimes}
+        />
         <FlightSummary flightStats={flightStats} />
         <SensorDetail samples={flightSamples} />
         <SensorGraphs telemetry={merged} flightStats={flightStats} />
@@ -49,12 +65,19 @@ function PfPanel({ title, children, className = "" }) {
 }
 
 // ── Mission Clock / Event Summary — first box, spans both rows ────────────────
-function MissionClock({ telemetry, stages = [], finalMetT = null, eventTimes = {} }) {
-  const t = (key) => eventTimes[key] ? `T+${eventTimes[key]}` : "T+--:--:--";
+function MissionClock({
+  telemetry,
+  stages = [],
+  finalMetT = null,
+  eventTimes = {},
+}) {
+  const t = (key) => (eventTimes[key] ? `T+${eventTimes[key]}` : "T+--:--:--");
   return (
     <PfPanel title="MISSION CLOCK / EVENTS" className="pf-mc pf-mc-tall">
       <div className="mc-countdown-label">TOTAL FLIGHT TIME</div>
-      <div className="mc-countdown">{finalMetT ?? telemetry.metT ?? "--:--:--"}</div>
+      <div className="mc-countdown">
+        {finalMetT ?? telemetry.metT ?? "--:--:--"}
+      </div>
       <div className="mc-grid">
         <div className="mc-cell">
           <div className="label">Apogee Time</div>
@@ -174,32 +197,68 @@ function SensorGraphs({ telemetry, flightStats }) {
 
 // ── Trajectory — landing coordinates + map placeholder ────────────────────────
 function Trajectory({ telemetry }) {
+  // ดึงค่าพิกัดพิกัดละติจูดและลองจิจูด
+  const lat = telemetry?.lat ?? 0;
+  const lon = telemetry?.lon ?? 0;
+
+  // ตรวจจับว่าได้รับสัญญาณ GPS (พิกัดพ้นจากจุด 0,0) แล้วหรือยัง
+  const hasGpsFix = lat !== 0 && lon !== 0;
+
+  // ใช้ Google Maps Embed URL ค้นหาพิกัดและแสดงผลแบบ Hybrid (ดาวเทียม + ชื่อสถานที่ [t=h])
+  // ซูมระดับ z=16 กำลังเหมาะสำหรับการมองเห็นจุดลงจอดจรวดรอบๆ
+  const mapUrl = `https://maps.google.com/maps?q=${lat},${lon}&t=h&z=16&output=embed`;
+
   return (
     <PfPanel title="FINAL TRAJECTORY / LANDING SITE" className="pf-traj">
-      <div className="traj-map">
-        <div className="pf-placeholder">
-          <div className="pf-placeholder-corner tl" />
-          <div className="pf-placeholder-corner tr" />
-          <div className="pf-placeholder-corner bl" />
-          <div className="pf-placeholder-corner br" />
-          <div>
-            <div className="pf-placeholder-title">MAP</div>
-            <div className="pf-placeholder-sub">placeholder</div>
+      <div className="traj-map h-[300px] w-full rounded border border-gray-800 overflow-hidden relative bg-black/50">
+        {hasGpsFix ? (
+          <iframe
+            title="Rocket Landing Site Map"
+            src={mapUrl}
+            width="100%"
+            height="100%"
+            style={{
+              border: 0,
+              // 💡 CSS Filter ตัวนี้จะทำการอินเวิร์ตสีแผนที่มาตรฐานของ Google ให้กลายเป็น "ธีมมืด" เข้ากับเว็บของคุณ
+              // หากต้องการแสดงผลสีแผนที่ดาวเทียมตามธรรมชาติแบบปกติ สามารถนำบรรทัด filter นี้ออกได้เลยครับ
+              filter:
+                "brightness(0.8) contrast(1.2) invert(90%) hue-rotate(180deg)",
+            }}
+            allowFullScreen=""
+            loading="lazy"
+          />
+        ) : (
+          /* หากสัญญาณ GPS ยังไม่ระบุตำแหน่ง (0,0) จะแสดงสถานะสัญลักษณ์จำลองรอพิกัด */
+          <div className="pf-placeholder absolute inset-0 flex items-center justify-center">
+            <div className="pf-placeholder-corner tl" />
+            <div className="pf-placeholder-corner tr" />
+            <div className="pf-placeholder-corner bl" />
+            <div className="pf-placeholder-corner br" />
+            <div className="text-center animate-pulse">
+              <div className="pf-placeholder-title text-orange-500 font-mono tracking-widest">
+                WAITING GPS FIX
+              </div>
+              <div className="pf-placeholder-sub text-gray-500 text-[10px] uppercase mt-1">
+                NO VALID TELEMETRY SIGNAL DECODED
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
-      <div className="traj-stats">
+
+      {/* ส่วนแสดงข้อมูลสถิติตัวเลขด้านล่างแผนที่ */}
+      <div className="traj-stats font-mono">
         <div className="k">LAT</div>
-        <div className="v">: {telemetry.lat?.toFixed(6) ?? "—"}</div>
+        <div className="v">: {telemetry?.lat?.toFixed(6) ?? "—"}</div>
         <div className="k">LONG</div>
-        <div className="v">: {telemetry.lon?.toFixed(6) ?? "—"}</div>
+        <div className="v">: {telemetry?.lon?.toFixed(6) ?? "—"}</div>
         <div className="k">ALT</div>
         <div className="v">
-          : {telemetry.altitude?.toLocaleString() ?? "—"} m
+          : {telemetry?.altitude?.toLocaleString() ?? "—"} m
         </div>
         <div className="k">VEL</div>
         <div className="v">
-          : {telemetry.velocity?.toLocaleString() ?? "—"} m/s
+          : {telemetry?.velocity?.toLocaleString() ?? "—"} m/s
         </div>
       </div>
     </PfPanel>
@@ -209,9 +268,9 @@ function Trajectory({ telemetry }) {
 // ── Graph Triple — velocity / acceleration / temp+pressure ───────────────────
 function GraphTriple({ samples }) {
   const panels = [
-    { title: "VELOCITY vs TIME",     Graph: VelocityGraph },
+    { title: "VELOCITY vs TIME", Graph: VelocityGraph },
     { title: "ACCELERATION vs TIME", Graph: AccelerationGraph },
-    { title: "TEMP & PRESSURE",      Graph: TempPressureGraph },
+    { title: "TEMP & PRESSURE", Graph: TempPressureGraph },
   ];
   return (
     <div className="pf-graph-col">
