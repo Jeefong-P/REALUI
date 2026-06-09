@@ -1,7 +1,8 @@
-import Clock from './Clock';
+import { useEffect, useState } from "react";
+import Clock from "./Clock";
 
-const s = { stroke: "var(--dim)", fill: "none" };
-const f = { fill: "var(--dim)" };
+const s = { stroke: "currentColor", fill: "none" };
+const f = { fill: "currentColor" };
 
 const IcoTelemetry = () => (
   <svg width="14" height="14" viewBox="0 0 24 24">
@@ -28,7 +29,7 @@ const IcoComms = () => (
     <path d="M12 22v-8" strokeWidth="1.5" strokeLinecap="round" {...s} />
     <path d="M7.5 8.5a6.5 6.5 0 019 0"  strokeWidth="1.5" strokeLinecap="round" {...s} />
     <path d="M4.5 5.5a10.5 10.5 0 0115 0" strokeWidth="1.5" strokeLinecap="round" {...s} />
-    <circle cx="12" cy="14" r="1.5" fill="var(--dim)" />
+    <circle cx="12" cy="14" r="1.5" {...f} />
   </svg>
 );
 const IcoDataLog = () => (
@@ -43,7 +44,7 @@ const IcoThermal = () => (
     <path d="M12 3v9.27" strokeWidth="1.5" strokeLinecap="round" {...s} />
     <path d="M9 7h6"     strokeWidth="1.5" strokeLinecap="round" {...s} />
     <circle cx="12" cy="17" r="4" strokeWidth="1.5" {...s} />
-    <circle cx="12" cy="17" r="1.5" fill="var(--dim)" />
+    <circle cx="12" cy="17" r="1.5" {...f} />
   </svg>
 );
 const IcoAttitude = () => (
@@ -55,36 +56,54 @@ const IcoAttitude = () => (
 );
 const IcoOrbit = () => (
   <svg width="14" height="14" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="2.5" fill="var(--dim)" />
+    <circle cx="12" cy="12" r="2.5" {...f} />
     <ellipse cx="12" cy="12" rx="9" ry="3.5" strokeWidth="1.4" {...s} />
     <ellipse cx="12" cy="12" rx="9" ry="3.5" strokeWidth="1.4" transform="rotate(60 12 12)" {...s} />
   </svg>
 );
 
 const ICONS = [
-  { key: "telemetry", label: "Telemetry", Ico: IcoTelemetry },
-  { key: "live",      label: "Live Feed",  Ico: IcoLive },
-  { key: "gps",       label: "GPS",        Ico: IcoGPS },
-  { key: "comms",     label: "Comms",      Ico: IcoComms },
-  { key: "datalog",   label: "Data Log",   Ico: IcoDataLog },
-  { key: "thermal",   label: "Thermal",    Ico: IcoThermal },
-  { key: "attitude",  label: "Attitude",   Ico: IcoAttitude },
-  { key: "orbit",     label: "Orbit",      Ico: IcoOrbit },
+  { key: "telemetry", label: "Telemetry", Ico: IcoTelemetry, selectable: true },
+  { key: "live",      label: "Live Feed",  Ico: IcoLive,      selectable: true },
+  { key: "gps",       label: "GPS",        Ico: IcoGPS,       selectable: true },
+  { key: "comms",     label: "Comms",      Ico: IcoComms,     selectable: true },
+  { key: "datalog",   label: "Data Log",   Ico: IcoDataLog,   selectable: false },
+  { key: "thermal",   label: "Thermal",    Ico: IcoThermal,   selectable: false },
+  { key: "attitude",  label: "Attitude",   Ico: IcoAttitude,  selectable: false },
+  { key: "orbit",     label: "Orbit",      Ico: IcoOrbit,     selectable: false },
 ];
 
-export default function IconBar({ telemetry = {} }) {
+export default function IconBar({ telemetry = {}, preflightActive = false }) {
   const {
-    currentState  = 'Far Field Pointing Deorbit',
-    burnStatus    = 'Burn Enabled',
-    pointingMode  = 'Sun + GEO',
-    gpsStatus     = 'GPS ▲',
-    velocityFooter = '22.3K / 6600',
-    groundStation = 'GND TBE',
+    currentState   = "Far Field Pointing Deorbit",
+    burnStatus     = "Burn Enabled",
+    pointingMode   = "Sun + GEO",
+    gpsStatus      = "GPS ▲",
+    velocityFooter = "22.3K / 6600",
+    groundStation  = "GND TBE",
   } = telemetry;
+
+  const [selected, setSelected] = useState(new Set());
+
+  // When preflight activates, force all icons green
+  useEffect(() => {
+    if (preflightActive) {
+      setSelected(new Set(ICONS.map((i) => i.key)));
+    }
+  }, [preflightActive]);
+
+  const toggle = (key, selectable) => {
+    if (!selectable) return;
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
 
   return (
     <div id="iconbar">
-      {/* Left — mission state segments */}
       <div className="ib-segs">
         <Seg label="State"    value={currentState} />
         <div className="ib-vdiv" />
@@ -95,19 +114,25 @@ export default function IconBar({ telemetry = {} }) {
 
       <div className="ib-vdiv" />
 
-      {/* Center — icon indicators */}
       <div className="icon-btns">
-        {ICONS.map(({ key, label, Ico }) => (
-          <div key={key} className="ib">
-            <Ico />
-            <div className="ib-lbl">{label}</div>
-          </div>
-        ))}
+        {ICONS.map(({ key, label, Ico, selectable }) => {
+          const active = selected.has(key);
+          return (
+            <div
+              key={key}
+              className={`ib${active ? " ib-active" : ""}${selectable ? " ib-selectable" : ""}`}
+              onClick={() => toggle(key, selectable)}
+              title={selectable ? (active ? "Deselect" : "Select") : undefined}
+            >
+              <Ico />
+              <div className="ib-lbl">{label}</div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="ib-vdiv" />
 
-      {/* Right — quick stats + clock */}
       <div className="ib-quick">
         <span className="ib-quick-val green">{gpsStatus}</span>
         <span className="ib-quick-val">{velocityFooter}</span>
@@ -122,7 +147,7 @@ function Seg({ label, value, hi }) {
   return (
     <div className="ib-seg">
       <span className="ib-seg-lbl">{label}</span>
-      <span className={`ib-seg-val${hi ? ' hi' : ''}`}>{value}</span>
+      <span className={`ib-seg-val${hi ? " hi" : ""}`}>{value}</span>
     </div>
   );
 }

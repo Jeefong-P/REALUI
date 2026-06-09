@@ -1,15 +1,13 @@
-import { useMemo } from "react";
-import { Canvas } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { Center, Environment, useGLTF } from "@react-three/drei";
 import MODEL_SRC from "../assets/CURSR_V_10.glb?url";
 
-const TWO_PI = Math.PI * 2;
 const AXIS_ORIGIN = [0, 0.02, 0.62];
 
-function toRadians(value) {
+function toRad(value) {
   const n = Number(value);
-  if (!Number.isFinite(n)) return 0;
-  return Math.abs(n) > TWO_PI ? (n * Math.PI) / 180 : n;
+  return Number.isFinite(n) ? n : 0;
 }
 
 function Arrow({ axis, color }) {
@@ -53,10 +51,23 @@ function RocketModel() {
 }
 
 function Scene({ rx, ry, rz }) {
-  const rotation = [toRadians(rx), toRadians(ry), toRadians(rz)];
+  const groupRef = useRef();
+  const targetRef = useRef([0, 0, 0]);
+  targetRef.current = [toRad(rx), toRad(ry), toRad(rz)];
+
+  useFrame((_, delta) => {
+    if (!groupRef.current) return;
+    // Exponential smoothing — frame-rate independent, ~8 rad/s convergence speed
+    const k = 1 - Math.exp(-8 * delta);
+    const r = groupRef.current.rotation;
+    const [tx, ty, tz] = targetRef.current;
+    r.x += (tx - r.x) * k;
+    r.y += (ty - r.y) * k;
+    r.z += (tz - r.z) * k;
+  });
 
   return (
-    <group rotation={rotation}>
+    <group ref={groupRef}>
       <RocketModel />
       <mesh position={AXIS_ORIGIN}>
         <sphereGeometry args={[0.035, 8, 8]} />
@@ -65,6 +76,7 @@ function Scene({ rx, ry, rz }) {
       <group position={AXIS_ORIGIN}>
         <Arrow axis="x" color="#e84040" />
         <Arrow axis="y" color="#38d878" />
+        <Arrow axis="z" color="#4488ff" />
       </group>
     </group>
   );
@@ -88,6 +100,7 @@ export default function CoordAxes({ rx = 0, ry = 0, rz = 0 }) {
       <div className="coord-legend">
         <span style={{ color: "#e84040" }}>X</span>
         <span style={{ color: "#38d878" }}>Y</span>
+        <span style={{ color: "#4488ff" }}>Z</span>
       </div>
     </div>
   );

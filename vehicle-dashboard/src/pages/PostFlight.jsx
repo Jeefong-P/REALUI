@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { AltitudeGraph, VelocityGraph, AccelerationGraph, TempPressureGraph } from "../components/FlightGraphs";
 
-export default function PostFlight({ telemetry = {} }) {
+export default function PostFlight({ telemetry = {}, flightStats = null, finalMetT = null, eventTimes = {}, flightSamples = [] }) {
   const [entering, setEntering] = useState(true);
 
   useEffect(() => {
@@ -11,47 +12,30 @@ export default function PostFlight({ telemetry = {} }) {
   const local = {
     lat: 54.341579,
     lon: -1.43536,
-    alt: 256000,
-    vel: 25555,
-    dist: 245,
-    temp: -10,
-    powerL: 0.62,
-    powerR: 0.58,
-    accel: 6,
-    velRaw: 5,
+    altitude: 256000,
+    velocity: 25555,
+    pressure: 1013,
+    temp: 22,
     heading: 50,
-    donut: 74,
-    pressure: 1030,
-    series: [4.2, 5.1, 6.0, 6.8, 6.4, 5.0, 4.6, 5.3, 6.1, 7.0, 6.7, 5.4, 4.3],
-    tick: 0,
   };
 
   const merged = { ...local, ...telemetry };
 
-  const elapsed = 55 * 3600 + 55 * 60 + 25;
-
   return (
     <div id="body" className={`postflight-body ${entering ? "entering" : ""}`}>
       <div className="pf-grid">
-        <LaunchVehicle />
+        <MissionClock telemetry={merged} stages={merged.stages} finalMetT={finalMetT} eventTimes={eventTimes} />
+        <FlightSummary flightStats={flightStats} />
+        <SensorDetail samples={flightSamples} />
+        <SensorGraphs telemetry={merged} flightStats={flightStats} />
         <Trajectory telemetry={merged} />
-        <MissionClock countdown={elapsed} telemetry={merged} />
-        <SensorDetail telemetry={merged} />
-        <SensorGraphs telemetry={merged} />
-        <Groundstation telemetry={merged} />
-      </div>
-
-      <div className="pf-video">
-        <div className="pf-video-head">
-          <span className="pf-video-lbl">FEED</span>
-          <span className="pf-video-tag">CAM-01</span>
-        </div>
-        <div className="video-slot" />
+        <GraphTriple samples={flightSamples} />
       </div>
     </div>
   );
 }
 
+// ── Shared panel wrapper ──────────────────────────────────────────────────────
 function PfPanel({ title, children, className = "" }) {
   return (
     <div className={`pf-panel ${className}`}>
@@ -64,29 +48,131 @@ function PfPanel({ title, children, className = "" }) {
   );
 }
 
-function LaunchVehicle() {
+// ── Mission Clock / Event Summary — first box, spans both rows ────────────────
+function MissionClock({ telemetry, stages = [], finalMetT = null, eventTimes = {} }) {
+  const t = (key) => eventTimes[key] ? `T+${eventTimes[key]}` : "T+--:--:--";
   return (
-    <PfPanel title="LAUNCH VEHICLE" className="pf-lv">
-      <div className="lv-stage">
-        <div className="pf-placeholder">
-          <div className="pf-placeholder-corner tl" />
-          <div className="pf-placeholder-corner tr" />
-          <div className="pf-placeholder-corner bl" />
-          <div className="pf-placeholder-corner br" />
-          <div>
-            <div className="pf-placeholder-title">VEHICLE IMAGE</div>
-            <div className="pf-placeholder-sub">placeholder</div>
-          </div>
+    <PfPanel title="MISSION CLOCK / EVENTS" className="pf-mc pf-mc-tall">
+      <div className="mc-countdown-label">TOTAL FLIGHT TIME</div>
+      <div className="mc-countdown">{finalMetT ?? telemetry.metT ?? "--:--:--"}</div>
+      <div className="mc-grid">
+        <div className="mc-cell">
+          <div className="label">Apogee Time</div>
+          <div className="val">{t("APOGEE")}</div>
         </div>
-        <div className="lv-chip">CURSR-V</div>
+        <div className="mc-cell">
+          <div className="label">Drogue Deploy</div>
+          <div className="val">{t("DROGUE")}</div>
+        </div>
+        <div className="mc-cell">
+          <div className="label">Main Chute</div>
+          <div className="val">{t("MAIN")}</div>
+        </div>
+        <div className="mc-cell">
+          <div className="label">Boost Start</div>
+          <div className="val">{t("BOOST")}</div>
+        </div>
       </div>
-      <div className="lv-title">TEAM-213</div>
-
-      <div className="lv-time">DATE?TIME</div>
+      <div className="pfevt-section-label">MISSION TIMESTAMPS</div>
+      <FlightTimeline stages={stages} />
     </PfPanel>
   );
 }
 
+// ── Flight Summary — max altitude hero + avg/max/min table ────────────────────
+const fmt1 = (v) => (v == null ? "—" : Math.round(v).toLocaleString());
+
+const SUMMARY_ROWS = [
+  { key: "velocity", label: "SPEED", unit: "m/s" },
+  { key: "pressure", label: "PRESSURE", unit: "hPa" },
+  { key: "temp", label: "TEMP", unit: "°C" },
+  { key: "acceleration", label: "ACCEL", unit: "m/s²" },
+];
+
+function FlightSummary({ flightStats }) {
+  const altMax = flightStats?.altitude?.max ?? null;
+  return (
+    <div className="pf-summary">
+      <div className="pfs-head">
+        <span className="pf-panel-title">FLIGHT SUMMARY</span>
+      </div>
+      <div className="pfs-alt-block">
+        <div className="pfs-alt-label">MAX ALTITUDE</div>
+        <div className="pfs-alt-value">
+          {altMax != null ? Math.round(altMax).toLocaleString() : "—"}
+        </div>
+        <div className="pfs-alt-unit">m</div>
+      </div>
+      <div className="pfs-divider" />
+      <div className="pfs-table">
+        <div className="pfs-thead">
+          <span />
+          <span>AVG</span>
+          <span>MAX</span>
+          <span>MIN</span>
+        </div>
+        {SUMMARY_ROWS.map(({ key, label, unit }) => {
+          const s = flightStats?.[key];
+          return (
+            <div key={key} className="pfs-row">
+              <span className="pfs-row-label">
+                {label}
+                <span className="pfs-unit"> {unit}</span>
+              </span>
+              <span>{fmt1(s?.avg)}</span>
+              <span className="pfs-hi">{fmt1(s?.max)}</span>
+              <span className="pfs-lo">{fmt1(s?.min)}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Sensor Detail — Altitude vs Time ─────────────────────────────────────────
+function SensorDetail({ samples }) {
+  return (
+    <PfPanel title="ALTITUDE vs TIME" className="pf-sd">
+      <div className="sd-matlab-slot">
+        <AltitudeGraph samples={samples} />
+      </div>
+    </PfPanel>
+  );
+}
+
+// ── Sensor Graphs — two donut gauges ─────────────────────────────────────────
+// Gauge 1: peak temp as % of MS5607 max operating temp (85°C)
+// Gauge 2: min pressure as % of sea-level pressure (1013.25 hPa) —
+//          lower value = higher altitude reached
+function SensorGraphs({ telemetry, flightStats }) {
+  const peakTemp = flightStats?.temp?.max ?? telemetry.temp;
+  const minPressure = flightStats?.pressure?.min ?? telemetry.pressure;
+
+  const tempPct = Math.min(100, Math.max(0, (peakTemp / 85) * 100));
+  const pressPct = Math.min(100, Math.max(0, (minPressure / 1013.25) * 100));
+
+  return (
+    <PfPanel title="SENSOR SUMMARY" className="pf-sg">
+      <div className="sg-bottom">
+        <DonutGauge
+          value={tempPct}
+          label="PEAK TEMP"
+          sublabel="% of sensor max"
+          color="var(--crim2)"
+        />
+        <DonutGauge
+          value={pressPct}
+          label="MIN PRESSURE"
+          sublabel="% of sea level"
+          color="var(--green)"
+        />
+      </div>
+    </PfPanel>
+  );
+}
+
+// ── Trajectory — landing coordinates + map placeholder ────────────────────────
 function Trajectory({ telemetry }) {
   return (
     <PfPanel title="FINAL TRAJECTORY / LANDING SITE" className="pf-traj">
@@ -104,92 +190,125 @@ function Trajectory({ telemetry }) {
       </div>
       <div className="traj-stats">
         <div className="k">LAT</div>
-        <div className="v">: {telemetry.lat.toFixed(6)}</div>
+        <div className="v">: {telemetry.lat?.toFixed(6) ?? "—"}</div>
         <div className="k">LONG</div>
-        <div className="v">: {telemetry.lon.toFixed(6)}</div>
+        <div className="v">: {telemetry.lon?.toFixed(6) ?? "—"}</div>
         <div className="k">ALT</div>
-        <div className="v">: {telemetry.alt.toLocaleString()} m</div>
+        <div className="v">
+          : {telemetry.altitude?.toLocaleString() ?? "—"} m
+        </div>
         <div className="k">VEL</div>
-        <div className="v">: {telemetry.vel.toLocaleString()} km/h</div>
-      </div>
-    </PfPanel>
-  );
-}
-
-function MissionClock({ countdown, telemetry }) {
-  const fmt = (n) => String(n).padStart(2, "0");
-  const h = Math.floor(countdown / 3600);
-  const m = Math.floor((countdown % 3600) / 60);
-  const s = countdown % 60;
-  return (
-    <PfPanel title="MISSION CLOCK / SUMMARY" className="pf-mc">
-      <div className="mc-countdown-label">TOTAL FLIGHT TIME</div>
-      <div className="mc-countdown">
-        {fmt(h)}:{fmt(m)}:{fmt(s)}
-      </div>
-      <div className="mc-grid">
-        <div className="mc-cell">
-          <div className="label">Total Distance</div>
-          <div className="val">{telemetry.dist} KM</div>
-        </div>
-        <div className="mc-cell">
-          <div className="label">Avg Speed</div>
-          <div className="val">{telemetry.vel.toLocaleString()} KM/H</div>
-        </div>
-        <div className="mc-cell">
-          <div className="label">Peak Altitude</div>
-          <div className="val">{telemetry.alt.toLocaleString()} M</div>
-        </div>
-        <div className="mc-cell">
-          <div className="label">Transmissions</div>
-          <div className="val">128 TOTAL</div>
+        <div className="v">
+          : {telemetry.velocity?.toLocaleString() ?? "—"} m/s
         </div>
       </div>
     </PfPanel>
   );
 }
 
-function SensorDetail({ telemetry }) {
-  /* Original live sensor detail (temperature gauge, power meters, inertia/magneto)
-     commented out for post-flight — replaced with a placeholder slot for a
-     MATLAB-exported graph.
-
-  const temp = telemetry.temp;
-  const min = -20, max = 30;
-  const pct = (temp - min) / (max - min);
-  const angle = -110 + pct * 220;
-  const cx = 100, cy = 110, r = 75;
-  const polar = (deg, rad = r) => {
-    const a = (deg - 90) * (Math.PI / 180);
-    return { x: cx + rad * Math.cos(a), y: cy + rad * Math.sin(a) };
-  };
-  const arcPath = (a1, a2, rad = r) => {
-    const p1 = polar(a1, rad), p2 = polar(a2, rad);
-    const large = a2 - a1 > 180 ? 1 : 0;
-    return `M ${p1.x} ${p1.y} A ${rad} ${rad} 0 ${large} 1 ${p2.x} ${p2.y}`;
-  };
-  const tickVals = [...];
-  ...full gauge SVG, PowerMeter rows, and INERTIA/MAGNETO block...
-  */
-
+// ── Graph Triple — velocity / acceleration / temp+pressure ───────────────────
+function GraphTriple({ samples }) {
+  const panels = [
+    { title: "VELOCITY vs TIME",     Graph: VelocityGraph },
+    { title: "ACCELERATION vs TIME", Graph: AccelerationGraph },
+    { title: "TEMP & PRESSURE",      Graph: TempPressureGraph },
+  ];
   return (
-    <PfPanel title="SENSOR DETAIL" className="pf-sd">
-      <div className="sd-matlab-slot">
-        <div className="pf-placeholder">
-          <div className="pf-placeholder-corner tl" />
-          <div className="pf-placeholder-corner tr" />
-          <div className="pf-placeholder-corner bl" />
-          <div className="pf-placeholder-corner br" />
-          <div>
-            <div className="pf-placeholder-title">MATLAB GRAPH</div>
-            <div className="pf-placeholder-sub">placeholder</div>
+    <div className="pf-graph-col">
+      {panels.map(({ title, Graph }) => (
+        <div key={title} className="pf-panel pf-graph-mini">
+          <div className="pf-panel-head">
+            <span className="pf-panel-title">{title}</span>
+            <span className="pf-panel-bracket" />
+          </div>
+          <div className="pf-panel-body">
+            <div className="pf-graph-slot">
+              <Graph samples={samples} />
+            </div>
           </div>
         </div>
-      </div>
-    </PfPanel>
+      ))}
+    </div>
   );
 }
 
+// ── Flight Timeline — stage events with T+ timestamps ────────────────────────
+// stageTimes will be wired once real event timestamps are tracked.
+// Format per row: ● STAGE NAME ─────── T+HH:MM:SS
+const DOT_STATE = { armed: "armed", done: "done", unarmed: "" };
+
+function FlightTimeline({ stages = [] }) {
+  return (
+    <div className="pf-timeline">
+      <div className="pfevt-grid">
+        {stages.map(({ id, label, state }) => (
+          <div key={id} className="pfevt-row">
+            <div className={`pfevt-dot ${DOT_STATE[state] ?? ""}`} />
+            <span className="pfevt-label">{label}</span>
+            <div className="pfevt-line" />
+            <span className="pfevt-time placeholder">T+--:--:--</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Donut gauge ───────────────────────────────────────────────────────────────
+function DonutGauge({ value, label, sublabel, color = "var(--crim2)" }) {
+  const r = 46,
+    cx = 70,
+    cy = 70;
+  const c = 2 * Math.PI * r;
+  const pct = Math.min(100, Math.max(0, value));
+  const dash = (pct / 100) * c;
+  return (
+    <div className="sg-donut">
+      <svg width="120" height="120" viewBox="0 0 140 140">
+        <circle
+          cx={cx}
+          cy={cy}
+          r={r}
+          fill="none"
+          stroke="#2a1f3a"
+          strokeWidth="8"
+        />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth="8"
+          strokeDasharray={`${dash} ${c}`}
+          strokeDashoffset={c / 4}
+          strokeLinecap="round"
+          transform={`rotate(-90 ${cx} ${cy})`}
+          style={{ transition: "stroke-dasharray 0.5s ease" }}
+        />
+        <text
+          x={cx}
+          y={cy + 2}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill="var(--bright)"
+          fontSize="26"
+          fontFamily="Rajdhani"
+          fontWeight="700"
+        >
+          {Math.round(pct)}
+          <tspan fontSize="14" fill="#9888a8">
+            %
+          </tspan>
+        </text>
+      </svg>
+      {label && <div className="sg-donut-label">{label}</div>}
+      {sublabel && <div className="sg-donut-sub">{sublabel}</div>}
+    </div>
+  );
+}
+
+// ── PowerMeter — kept for future SensorDetail use ────────────────────────────
 function PowerMeter({ label, value }) {
   const lit = Math.round(value * 24);
   const colorFor = (i) => {
@@ -209,207 +328,5 @@ function PowerMeter({ label, value }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function SensorGraphs({ telemetry }) {
-  return (
-    <PfPanel title="SOME GRAPHS" className="pf-sg">
-      <div className="sg-line">
-        <div className="pf-placeholder">
-          <div className="pf-placeholder-corner tl" />
-          <div className="pf-placeholder-corner tr" />
-          <div className="pf-placeholder-corner bl" />
-          <div className="pf-placeholder-corner br" />
-          <div>
-            <div className="pf-placeholder-title">SOME GRAPH</div>
-            <div className="pf-placeholder-sub">placeholder</div>
-          </div>
-        </div>
-      </div>
-      <div className="sg-bottom">
-        <DonutGauge value={telemetry.donut} />
-        <HalfGauge value={telemetry.pressure} />
-      </div>
-    </PfPanel>
-  );
-}
-
-// remove TS soon
-function DonutGauge({ value }) {
-  const r = 46,
-    cx = 70,
-    cy = 70;
-  const c = 2 * Math.PI * r;
-  const dash = (value / 100) * c;
-  return (
-    <div className="sg-donut">
-      <svg width="130" height="130" viewBox="0 0 140 140">
-        <circle
-          cx={cx}
-          cy={cy}
-          r={r}
-          fill="none"
-          stroke="#2a1f3a"
-          strokeWidth="8"
-        />
-        <circle
-          cx={cx}
-          cy={cy}
-          r={r}
-          fill="none"
-          stroke="var(--crim2)"
-          strokeWidth="8"
-          strokeDasharray={`${dash} ${c}`}
-          strokeDashoffset={c / 4}
-          strokeLinecap="round"
-          transform={`rotate(-90 ${cx} ${cy})`}
-          style={{ transition: "stroke-dasharray 0.5s ease" }}
-        />
-        <text
-          x={cx}
-          y={cy + 2}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fill="var(--bright)"
-          fontSize="26"
-          fontFamily="Rajdhani"
-          fontWeight="700"
-        >
-          {Math.round(value)}
-          <tspan fontSize="14" fill="#9888a8">
-            %
-          </tspan>
-        </text>
-      </svg>
-    </div>
-  );
-}
-
-function HalfGauge({ value }) {
-  const min = 900,
-    max = 1050;
-  const pct = (value - min) / (max - min);
-  const r = 50,
-    cx = 70,
-    cy = 70;
-  const polar = (deg) => {
-    const a = (deg - 180) * (Math.PI / 180);
-    return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
-  };
-  const start = polar(0);
-  const end = polar(180);
-  const cur = polar(pct * 180);
-  const bg = `M ${start.x} ${start.y} A ${r} ${r} 0 0 1 ${end.x} ${end.y}`;
-  const fg = `M ${start.x} ${start.y} A ${r} ${r} 0 0 1 ${cur.x} ${cur.y}`;
-  return (
-    <div className="sg-donut">
-      <svg width="150" height="95" viewBox="0 0 140 90">
-        <path
-          d={bg}
-          fill="none"
-          stroke="#2a1f3a"
-          strokeWidth="8"
-          strokeLinecap="round"
-        />
-        <path
-          d={fg}
-          fill="none"
-          stroke="var(--green)"
-          strokeWidth="8"
-          strokeLinecap="round"
-        />
-        <text
-          x={cx}
-          y={cy - 8}
-          textAnchor="middle"
-          fill="var(--bright)"
-          fontSize="22"
-          fontWeight="700"
-          fontFamily="Rajdhani"
-        >
-          {Math.round(value)}
-        </text>
-        <text
-          x={cx}
-          y={cy + 6}
-          textAnchor="middle"
-          fill="#9888a8"
-          fontSize="11"
-        >
-          xxx
-        </text>
-        <text
-          x={start.x - 4}
-          y={start.y + 12}
-          fontSize="9"
-          fill="#6a5d7c"
-          textAnchor="end"
-          fontFamily="Share Tech Mono"
-        >
-          900
-        </text>
-        <text
-          x={end.x + 4}
-          y={end.y + 12}
-          fontSize="9"
-          fill="#6a5d7c"
-          fontFamily="Share Tech Mono"
-        >
-          1050
-        </text>
-      </svg>
-    </div>
-  );
-}
-
-function Groundstation() {
-  return (
-    <PfPanel title="GROUNDSTATION" className="pf-gs">
-      <div className="gs-top">
-        <div className="gs-info">
-          <div className="lbl">STATION</div>
-          <div className="val">GPS MAYBE</div>
-          <div className="lbl">LAT / LONG</div>
-          <div className="val">xxxx / xxxx</div>
-          <div className="lbl">LAST CONTACT</div>
-          <div className="val">via onmessage</div>
-        </div>
-      </div>
-
-      <div className="gs-stats-grid">
-        <div className="gs-stat">
-          <div className="lbl">xxxxx</div>
-          <div className="val">xxx</div>
-        </div>
-        <div className="gs-stat">
-          <div className="lbl">xxxx</div>
-          <div className="val">xxx</div>
-        </div>
-        <div className="gs-stat">
-          <div className="lbl">xxx</div>
-          <div className="val">xxx</div>
-        </div>
-        <div className="gs-stat">
-          <div className="lbl">x</div>
-          <div className="val">xxx </div>
-        </div>
-      </div>
-
-      <div className="gs-bar-row">
-        <span className="lbl">something</span>
-        <div className="gs-bar">
-          <i style={{ width: "94.2%" }} />
-        </div>
-        <span className="pct">94.2%</span>
-      </div>
-      <div className="gs-bar-row">
-        <span className="lbl">something</span>
-        <div className="gs-bar">
-          <i style={{ width: "98.7%" }} />
-        </div>
-        <span className="pct">98.7%</span>
-      </div>
-    </PfPanel>
   );
 }

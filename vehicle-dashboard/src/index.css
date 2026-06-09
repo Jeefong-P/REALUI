@@ -1124,7 +1124,7 @@ body {
 /* ── Post-Flight page ── */
 #body.postflight-body {
   display: grid;
-  grid-template-columns: 1fr 290px;
+  grid-template-columns: 1fr;
   grid-template-rows: 1fr auto;
   gap: 8px;
   padding: 10px 10px 0;
@@ -1134,7 +1134,7 @@ body {
   grid-column: 1;
   grid-row: 1;
   display: grid;
-  grid-template-columns: 1fr 1.2fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 0.72fr;
   grid-template-rows: 1fr 1fr;
   gap: 8px;
   min-height: 0;
@@ -1144,39 +1144,116 @@ body {
   grid-column: 1 / -1;
   grid-row: 2;
 }
-.postflight-body .pf-video {
-  grid-column: 2;
-  grid-row: 1;
+/* MissionClock spans both content rows */
+.pf-mc-tall {
+  grid-row: 1 / 3;
+}
+.pf-mc-tall .mc-grid {
+  margin-top: 18px;
+}
+/* Flight Summary panel — flows as 6th cell in the 3×2 pf-grid */
+.postflight-body .pf-summary {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
   min-height: 0;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(168, 140, 200, 0.12);
+  border-radius: 4px;
+  padding: 12px 14px;
+  overflow: hidden;
 }
-.pf-video-head {
+.pfs-head {
+  margin-bottom: 14px;
+}
+.pfs-alt-block {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 0 2px;
+  padding: 16px 0 18px;
 }
-.pf-video-lbl {
+.pfs-alt-label {
+  font-family: var(--ui);
   font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.2em;
   color: var(--dim);
   text-transform: uppercase;
+  margin-bottom: 6px;
 }
-.pf-video-tag {
+.pfs-alt-value {
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 46px;
+  font-weight: 700;
+  color: var(--bright);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.pfs-alt-unit {
+  font-family: var(--ui);
+  font-size: 11px;
   color: var(--gold);
-  letter-spacing: 0.1em;
-  margin-left: auto;
+  letter-spacing: 0.15em;
+  margin-top: 4px;
 }
-.postflight-body .pf-video .video-slot {
+.pfs-divider {
+  height: 1px;
+  background: rgba(168, 140, 200, 0.15);
+  margin: 4px 0 14px;
+}
+.pfs-table {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   flex: 1;
-  width: 100%;
-  aspect-ratio: 16 / 9;
 }
+.pfs-thead {
+  display: grid;
+  grid-template-columns: 1fr repeat(3, 52px);
+  padding: 0 2px 6px;
+  border-bottom: 1px solid rgba(168,140,200,0.1);
+  margin-bottom: 4px;
+}
+.pfs-thead span {
+  font-family: var(--ui);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--dim);
+  text-align: right;
+  text-transform: uppercase;
+}
+.pfs-thead span:first-child { text-align: left; }
+.pfs-row {
+  display: grid;
+  grid-template-columns: 1fr repeat(3, 52px);
+  padding: 5px 2px;
+  border-bottom: 1px solid rgba(168,140,200,0.06);
+}
+.pfs-row span {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text);
+  text-align: right;
+}
+.pfs-row-label {
+  font-family: var(--ui) !important;
+  font-size: 8px !important;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--dim) !important;
+  text-align: left !important;
+  text-transform: uppercase;
+  align-self: center;
+}
+.pfs-unit {
+  font-size: 7px;
+  color: var(--dim);
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+.pfs-hi { color: var(--gold) !important; }
+.pfs-lo { color: #7eccb8 !important; }
 
 .pf-panel {
   position: relative;
@@ -1350,6 +1427,7 @@ body {
   letter-spacing: 0.3em;
   color: var(--dim);
   margin-top: 4px;
+  flex-shrink: 0;
 }
 .mc-countdown {
   text-align: center;
@@ -1360,9 +1438,11 @@ body {
   line-height: 1;
   margin: 6px 0 12px;
   text-shadow: 0 0 12px rgba(200, 152, 32, 0.25);
+  flex-shrink: 0;
 }
 .mc-grid {
   display: grid;
+  flex-shrink: 0;
   grid-template-columns: 1fr 1fr;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   margin-top: auto;
@@ -1434,6 +1514,53 @@ body {
   letter-spacing: 0.12em;
   color: var(--dim);
   margin-top: 4px;
+}
+
+/* Flight graph tooltip */
+.fg-tooltip {
+  background: rgba(10, 6, 18, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  padding: 5px 8px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--bright);
+}
+.fg-tt-time {
+  color: var(--dim);
+  margin-bottom: 3px;
+  letter-spacing: 0.06em;
+}
+.fg-tt-row { margin: 1px 0; }
+.fg-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 0.12em;
+}
+
+/* Graph triple column */
+.pf-graph-col {
+  grid-column: 4;
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+.pf-graph-mini {
+  flex: 1;
+  min-height: 0;
+}
+.pf-graph-slot {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  padding: 6px;
 }
 
 /* Sensor Detail */
@@ -1523,17 +1650,38 @@ body {
 }
 
 /* Sensor Graphs */
-.sg-line { height: 130px; }
 .sg-bottom {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
-  margin-top: 6px;
+  flex: 1;
+  align-items: center;
 }
 .sg-donut {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+.sg-donut svg {
+  width: 100%;
+  height: auto;
+}
+.sg-donut-label {
+  font-family: var(--ui);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--bright);
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+.sg-donut-sub {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--dim);
+  letter-spacing: 0.06em;
+  margin-top: 2px;
 }
 
 /* Groundstation */
@@ -1625,6 +1773,18 @@ body {
   text-align: right;
 }
 
+/* ── OnFlight temperature bar ── */
+.of-temp-row {
+  margin-top: 4px;
+  margin-bottom: 2px;
+}
+.of-temp-row .lbl {
+  width: 36px;
+}
+.of-temp-bar i {
+  background: linear-gradient(90deg, var(--gold2), var(--orange), var(--red));
+}
+
 /* Bottom Timeline */
 .pf-timeline {
   background: rgba(0, 0, 0, 0.22);
@@ -1653,6 +1813,103 @@ body {
   border-bottom: 2px solid var(--crimson);
   border-right: 2px solid var(--crimson);
 }
+/* Post-flight event timeline — fills remaining space in MissionClock panel */
+.pfevt-section-label {
+  font-family: var(--ui);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: var(--dim);
+  text-transform: uppercase;
+  margin-top: 40px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+.pfevt-grid {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.pfevt-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  position: relative;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 10px 0;
+}
+.pfevt-row:last-child {
+  border-bottom: none;
+}
+/* vertical connecting line — upper half of each row (except first) */
+.pfevt-row::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0;
+  height: 50%;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.pfevt-row:first-child::before { display: none; }
+/* vertical connecting line — lower half of each row (except last) */
+.pfevt-row::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.pfevt-row:last-child::after { display: none; }
+.pfevt-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--dim);
+  background: var(--bg);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.pfevt-dot.done {
+  border-color: var(--gold);
+  background: var(--gold);
+  box-shadow: 0 0 5px rgba(200, 152, 32, 0.5);
+}
+.pfevt-dot.armed {
+  border-color: var(--green);
+}
+.pfevt-label {
+  font-family: var(--ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--text);
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pfevt-line {
+  flex: 1;
+  max-width: 40px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.pfevt-time {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--gold);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pfevt-time.placeholder {
+  color: var(--dim);
+}
+
 .tl-title {
   font-family: var(--ui);
   font-size: 11px;
@@ -1718,4 +1975,320 @@ body {
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.08);
   border-radius: 1px;
+}
+
+/* ── Icon bar active/selected state ── */
+.ib-active svg {
+  color: var(--green);
+}
+.ib-active .ib-lbl {
+  color: var(--green);
+}
+.ib-active {
+  border-bottom-color: var(--green);
+}
+.ib-selectable:hover {
+  background: rgba(56, 216, 120, 0.06);
+}
+
+/* ── PreFlight activate button ── */
+.pf-activate-wrap {
+  margin-top: auto;
+  padding: 10px 0 6px;
+}
+.pf-activate-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 8px;
+  background: rgba(160, 24, 24, 0.12);
+  border: 1px solid rgba(208, 36, 36, 0.45);
+  border-radius: 3px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s;
+}
+.pf-activate-btn::before,
+.pf-activate-btn::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-color: var(--gold);
+  border-style: solid;
+  border-width: 0;
+}
+.pf-activate-btn::before {
+  top: -1px; left: -1px;
+  border-top-width: 1.5px; border-left-width: 1.5px;
+}
+.pf-activate-btn::after {
+  bottom: -1px; right: -1px;
+  border-bottom-width: 1.5px; border-right-width: 1.5px;
+}
+.pf-activate-btn:hover:not(:disabled) {
+  background: rgba(160, 24, 24, 0.25);
+  border-color: var(--crim2);
+}
+.pf-activate-btn:disabled {
+  cursor: default;
+  background: rgba(56, 216, 120, 0.08);
+  border-color: rgba(56, 216, 120, 0.35);
+}
+.pfa-icon {
+  font-size: 18px;
+  line-height: 1;
+  color: var(--crim2);
+}
+.pf-activate-btn--done .pfa-icon {
+  color: var(--green);
+}
+.pfa-label {
+  font-family: var(--ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  color: var(--bright);
+  text-transform: uppercase;
+}
+.pfa-hint {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+}
+
+/* ── Racing countdown overlay ── */
+.countdown-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.countdown-num {
+  font-family: var(--mono);
+  font-size: 80px;
+  font-weight: 400;
+  color: var(--bright);
+  letter-spacing: 0.08em;
+  line-height: 1;
+  user-select: none;
+  animation: cd-fade 0.12s ease-out;
+}
+.countdown-num.boost {
+  font-family: var(--ui);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gold2);
+  letter-spacing: 0.55em;
+  text-shadow: 0 0 20px rgba(234, 186, 48, 0.35);
+  animation: cd-fade 0.12s ease-out;
+}
+@keyframes cd-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Popup system ── */
+.popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(3px);
+}
+.popup-box {
+  background: #100e18;
+  border: 1px solid rgba(200, 152, 32, 0.25);
+  border-radius: 4px;
+  min-width: 320px;
+  max-width: 480px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
+}
+.popup-box::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 10px; height: 10px;
+  border-top: 2px solid var(--gold);
+  border-left: 2px solid var(--gold);
+  pointer-events: none;
+}
+.popup-box::after {
+  content: "";
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 10px; height: 10px;
+  border-bottom: 2px solid var(--crimson);
+  border-right: 2px solid var(--crimson);
+  pointer-events: none;
+}
+.popup-box--warn {
+  border-color: rgba(208, 36, 36, 0.4);
+}
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.popup-title {
+  font-family: var(--ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: var(--bright);
+  text-transform: uppercase;
+}
+.popup-close {
+  background: transparent;
+  border: none;
+  color: var(--dim);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: color 0.12s;
+}
+.popup-close:hover { color: var(--bright); }
+.popup-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.popup-message {
+  font-family: var(--ui);
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.55;
+}
+.popup-warn-icon {
+  font-size: 32px;
+  text-align: center;
+  color: var(--crim2);
+  margin-bottom: 4px;
+  text-shadow: 0 0 20px rgba(208, 36, 36, 0.5);
+}
+.popup-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.popup-status-row:last-child { border-bottom: none; }
+.popup-status-lbl {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--dim);
+  text-transform: uppercase;
+}
+.popup-status-val {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+}
+.popup-status-val.ok  { color: var(--green); }
+.popup-status-val.err { color: var(--crim2); }
+.popup-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 16px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.popup-btn {
+  font-family: var(--ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 6px 18px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.popup-btn--primary {
+  background: rgba(160, 24, 24, 0.3);
+  border: 1px solid rgba(208, 36, 36, 0.5);
+  color: var(--bright);
+}
+.popup-btn--primary:hover {
+  background: rgba(160, 24, 24, 0.5);
+  border-color: var(--crim2);
+}
+.popup-btn--ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--dim);
+}
+.popup-btn--ghost:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--text);
+}
+.popup-btn--danger {
+  background: rgba(160, 24, 24, 0.5);
+  border: 1px solid var(--crim2);
+  color: var(--bright);
+}
+.popup-btn--danger:hover {
+  background: rgba(208, 36, 36, 0.6);
+}
+
+/* ── OnFlight HUD alerts (apogee / drogue / chute deploy) ── */
+.of-hud-alerts {
+  position: fixed;
+  bottom: 68px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  pointer-events: none;
+}
+
+.of-hud-alert {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: hud-alert-in 0.22s ease-out;
+}
+
+.of-hud-alert-label {
+  font-family: var(--ui);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+.of-hud-alert--gold   .of-hud-alert-label { color: var(--gold2);  text-shadow: 0 0 18px rgba(234,186,48,0.6);  }
+.of-hud-alert--orange .of-hud-alert-label { color: var(--orange); text-shadow: 0 0 18px rgba(224,112,48,0.6); }
+.of-hud-alert--green  .of-hud-alert-label { color: var(--green);  text-shadow: 0 0 18px rgba(56,216,120,0.6);  }
+
+.of-hud-alert-sub {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+@keyframes hud-alert-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0);   }
 }
