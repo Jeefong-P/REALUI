@@ -12,17 +12,13 @@ const ITEMS = [
 
 const WAITING = 0;
 const LOADING = 1;
-const READY = 2;
+const READY   = 2;
 
 const DOT_CLASS = { [WAITING]: "warn", [LOADING]: "loading", [READY]: "done" };
-const SUB_CLASS = {
-  [WAITING]: "awaiting",
-  [LOADING]: "loading",
-  [READY]: "open",
-};
-const LABEL = { [WAITING]: "Waiting", [LOADING]: "Loading", [READY]: "Ready" };
+const SUB_CLASS = { [WAITING]: "awaiting", [LOADING]: "loading", [READY]: "open" };
+const LABEL     = { [WAITING]: "Waiting", [LOADING]: "Loading", [READY]: "Ready" };
 
-export default function LeftList({ items = ITEMS }) {
+export default function LeftList({ items = ITEMS, activated = false }) {
   const [statuses, setStatuses] = useState(() => items.map(() => WAITING));
 
   const setStatusAt = (i, value) =>
@@ -36,19 +32,13 @@ export default function LeftList({ items = ITEMS }) {
     setStatuses(items.map(() => WAITING));
     items.forEach((_, i) => {
       setTimeout(() => setStatusAt(i, LOADING), i * 400);
-      setTimeout(() => setStatusAt(i, READY), i * 400 + 1500);
+      setTimeout(() => setStatusAt(i, READY),   i * 400 + 1500);
     });
   };
 
   useEffect(() => {
-    // const channel = new BroadcastChannel("mission_control");
-    // channel.onmessage = (e) => {
-    //   if (e.data.type === "TRIGGER_EVENT" && e.data.target === "START_MISSION") {
-    //     startCascadeSequence();
-    //   }
-    // };
-    // return () => channel.close();
-  }, []);
+    if (activated) startCascadeSequence();
+  }, [activated]);
 
   return (
     <div id="left-list">
@@ -58,7 +48,6 @@ export default function LeftList({ items = ITEMS }) {
           <div
             key={item.id}
             className={`ci ${status === WAITING ? "warn" : ""}`}
-            // onClick={() => {/* operator click handler */}}
           >
             <div className={`ci-dot ${DOT_CLASS[status]}`} />
             <div>

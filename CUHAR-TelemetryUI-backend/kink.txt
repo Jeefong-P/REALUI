@@ -1,0 +1,3 @@
+ms5607 temperature is 100 * celcius
+bmi088gyro is deg/s 
+flightState is stuck at MAIN because touchdown detection is abs(altitude) < 5

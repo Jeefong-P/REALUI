@@ -4,18 +4,37 @@ import LeftData from "../components/LeftData";
 import ModelZone from "../components/ModelZone";
 import RightList from "../components/RightList";
 
-export default function PreFlight({ telemetry = {} }) {
+export default function PreFlight({ telemetry = {}, onActivate }) {
   const [entering, setEntering] = useState(true);
+  const [activated, setActivated] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setEntering(false), 1500);
     return () => clearTimeout(t);
   }, []);
 
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.key === "x" || e.key === "X") && !activated) handleActivate();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [activated]);
+
+  const handleActivate = () => {
+    if (activated) return;
+    setActivated(true);
+    onActivate?.();
+  };
+
   return (
     <div id="body" className={entering ? "entering" : ""}>
-      <LeftList />
-      <LeftData telemetry={telemetry} />
+      <LeftList activated={activated} />
+
+      <div id="left-data">
+        <LeftData telemetry={telemetry} />
+      </div>
+
       <div id="model-with-overlay">
         <ModelZone />
         <div className="bubble-overlay">
@@ -45,6 +64,7 @@ export default function PreFlight({ telemetry = {} }) {
           </div>
         </div>
       </div>
+
       <div id="right-column">
         <div className="video-slot" />
         <RightList />

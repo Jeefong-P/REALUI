@@ -5,28 +5,10 @@ import MissionTimeline from "../components/MissionTimeline";
 
 export default function OnFlight({ telemetry = {} }) {
   const [entering, setEntering] = useState(true);
-  const [mockAttitude, setMockAttitude] = useState({ rx: 0, ry: 0, rz: 0 });
 
   useEffect(() => {
     const t = setTimeout(() => setEntering(false), 1500);
     return () => clearTimeout(t);
-  }, []);
-
-  useEffect(() => {
-    const startedAt = performance.now();
-
-    const tick = () => {
-      const t = (performance.now() - startedAt) / 1000;
-      setMockAttitude({
-        rx: Math.sin(t * 0.9) * 0.65,
-        ry: Math.cos(t * 0.7) * 0.45,
-        rz: Math.sin(t * 0.5) * 0.35,
-      });
-    };
-
-    tick();
-    const id = setInterval(tick, 50);
-    return () => clearInterval(id);
   }, []);
 
   const {
@@ -36,25 +18,20 @@ export default function OnFlight({ telemetry = {} }) {
     altitude = "100",
     velocity = "100",
     acceleration = "100",
-    posX,
-    posY,
-    posZ,
-    orientation,
-    attitude,
-    roll,
-    pitch,
-    yaw,
+    pressure = "1013",
+    temp = "22",
     rx,
     ry,
     rz,
+    stages,
     systemStatus = "NOMINAL",
   } = telemetry;
 
-  const attitudeSource = orientation || attitude || {};
-  const pickAttitude = (...values) => values.find((value) => Number.isFinite(Number(value)));
-  const attitudeRx = pickAttitude(attitudeSource.rx, attitudeSource.roll, rx, roll, posX) ?? mockAttitude.rx;
-  const attitudeRy = pickAttitude(attitudeSource.ry, attitudeSource.pitch, ry, pitch, posY) ?? mockAttitude.ry;
-  const attitudeRz = pickAttitude(attitudeSource.rz, attitudeSource.yaw, rz, yaw, posZ) ?? mockAttitude.rz;
+  const tempPct = Math.min(100, Math.max(0, (Number(temp) / 120) * 100)).toFixed(1);
+
+  const attitudeRx = Number.isFinite(rx) ? rx : 0;
+  const attitudeRy = Number.isFinite(ry) ? ry : 0;
+  const attitudeRz = Number.isFinite(rz) ? rz : 0;
 
   return (
     <div id="body" className={`onflight-body ${entering ? "entering" : ""}`}>
@@ -68,7 +45,7 @@ export default function OnFlight({ telemetry = {} }) {
         <Divider />
         <Stat label="Status" value={systemStatus} className="green" />
         <Divider />
-        <MissionTimeline />
+        <MissionTimeline stages={stages} />
       </div>
 
       {/* CENTER — live video slot (real video lives in App.jsx) */}
@@ -78,13 +55,22 @@ export default function OnFlight({ telemetry = {} }) {
 
       {/* RIGHT — flight metrics */}
       <div className="of-side of-side-right">
-        <Stat label="Altitude" value={altitude} unit="km" mono />
+        <Stat label="Altitude" value={altitude} unit="m" mono />
+        <Divider />
+        <Stat label="Pressure" value={pressure} unit="hPa" mono />
         <Divider />
         <div className="of-gauge">
-          <ArcGauge value={velocity} max={1000} title="VELOCITY" unit="m/s" size={150} />
+          <ArcGauge value={velocity} max={1000} title="VELOCITY" unit="m/s" size={115} />
         </div>
         <div className="of-gauge">
-          <ArcGauge value={acceleration} max={10} title="ACCEL" unit="G" size={150} />
+          <ArcGauge value={acceleration} max={200} title="ACCEL" unit="m/s²" size={115} />
+        </div>
+        <div className="gs-bar-row of-temp-row">
+          <span className="lbl">TEMP</span>
+          <div className="gs-bar of-temp-bar">
+            <i style={{ width: `${tempPct}%` }} />
+          </div>
+          <span className="pct">{temp}°C</span>
         </div>
         <Divider />
         <CoordAxes rx={attitudeRx} ry={attitudeRy} rz={attitudeRz} />

@@ -2,9 +2,9 @@ import Clock from "./Clock";
 
 export default function StatusBar({ telemetry = {} }) {
   const {
-    currentState = "Far Field Pointing Deorbit",
-    burnStatus = "Burn Enabled",
-    pointingMode = "Sun + GEO",
+    currentState = "Far",
+    burnStatus = "Tele enabled",
+    pointingMode = "None",
     gpsStatus = "GPS ▲",
     velocity = "22.3K / 6600",
     groundStation = "GND TBE",
